@@ -1,0 +1,19 @@
+[package]
+name = "rsiot-devices"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rsiot = { version = "*", path = "../rsiot", features = ["executor"] }
+async-trait = "*"
+tokio = "*"
+strum = { version = "*", features = ["derive"] }
+tracing = "*"
+
+[dev-dependencies]
+tokio = { version = "*", features = ["rt-multi-thread"] }
+serde = { version = "*", features = ["derive"] }
+rsiot = { version = "*", path = "../rsiot", features = [
+    "cmp_linux_spi_master",
+    "logging",
+] }
