@@ -1,14 +1,16 @@
-use strum::FromRepr;
-use tracing::trace;
+use tracing::{trace, warn};
 
 use super::{
-    async_trait, broadcast, mpsc, BufferBound, ConfigPeriodicRequest, DeviceBase, DeviceTrait,
-    Duration, FieldbusRequest, FieldbusResponse, Message, MsgDataBound, Operation, Result,
+    async_trait, broadcast, mpsc, BitField, BitView, Buffer, ConfigPeriodicRequest, DeviceBase,
+    DeviceTrait, Duration, FieldbusRequest, FieldbusResponse, Message, Msb0, MsgDataBound,
+    Operation, RequestKind, Result,
 };
 
-/// Тестовое устройство
+/// Датчик температуры и влажности AHT10
 #[derive(Clone, Debug)]
 pub struct Device<TMsg> {
+    pub address: u8,
+
     pub request_period: Duration,
 
     /// Преобразование данных из буфера в исходящие сообщения
@@ -31,12 +33,18 @@ where
             fn_init_requests: |_| vec![],
             periodic_requests: vec![ConfigPeriodicRequest {
                 period: self.request_period,
-                fn_requests: |_buffer| {
+                fn_requests: |buffer: &Buffer| {
                     Ok(vec![FieldbusRequest::new(
-                        RequestKind::XYPosition,
+                        buffer.address,
+                        RequestKind::Values,
                         vec![
-                            Operation::WriteRead(vec![0b1101_1000], 1),
-                            Operation::WriteRead(vec![0b1001_1000], 1),
+                            Operation::Write {
+                                write_data: vec![0xAC, 0x33, 0x00],
+                            },
+                            Operation::Delay {
+                                delay: Duration::from_millis(100),
+                            },
+                            Operation::Read { read_size: 6 },
                         ],
                     )])
                 },
@@ -48,25 +56,33 @@ where
 
                 let request_kind: RequestKind = response.request_kind.into();
 
-                match request_kind {
-                    RequestKind::XYPosition => {
-                        let response_x = response.payload[0][0];
-                        let response_y = response.payload[1][0];
+                let payload = match response.payload {
+                    Ok(payload) => payload,
+                    Err(err) => {
+                        warn!("Error reading AHT10: {}", err);
+                        return Ok(());
+                    }
+                };
 
-                        if response_x == 0 {
-                            buffer.x = 0;
-                            buffer.y = 0;
-                        } else {
-                            buffer.x = response_x as u32;
-                            buffer.y = response_y as u32;
-                        }
+                match request_kind {
+                    RequestKind::Values => {
+                        let bits = payload[0].view_bits::<Msb0>();
+
+                        let hum = bits[8..28].load_be::<u32>();
+                        buffer.humidity = hum as f64 / 2_u32.pow(20) as f64 * 100.0;
+
+                        let temp = bits[28..48].load_be::<u32>();
+                        buffer.temperature = temp as f64 / 2_u32.pow(20) as f64 * 200.0 - 50.0;
                     }
                 }
 
                 Ok(())
             },
             fn_buffer_to_msgs: self.fn_output,
-            buffer_default: Buffer::default(),
+            buffer_default: Buffer {
+                address: self.address,
+                ..Default::default()
+            },
         };
         device
             .spawn(
@@ -79,28 +95,3 @@ where
         Ok(())
     }
 }
-
-/// Виды запросов
-#[derive(FromRepr)]
-pub enum RequestKind {
-    XYPosition,
-}
-impl From<RequestKind> for u8 {
-    fn from(value: RequestKind) -> Self {
-        value as u8
-    }
-}
-impl From<u8> for RequestKind {
-    fn from(value: u8) -> Self {
-        RequestKind::from_repr(value as usize).unwrap()
-    }
-}
-
-/// Буфер данных
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct Buffer {
-    pub x: u32,
-    pub y: u32,
-}
-
-impl BufferBound for Buffer {}

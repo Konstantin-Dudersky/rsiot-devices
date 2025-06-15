@@ -4,16 +4,18 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rsiot = { version = "*", path = "../rsiot", features = ["executor"] }
 async-trait = "*"
-tokio = "*"
+bitvec = "1.0.1"
+rsiot = { version = "*", path = "../rsiot", features = ["executor"] }
 strum = { version = "*", features = ["derive"] }
 tracing = "*"
+tokio = "*"
 
 [dev-dependencies]
 tokio = { version = "*", features = ["rt-multi-thread"] }
 serde = { version = "*", features = ["derive"] }
 rsiot = { version = "*", path = "../rsiot", features = [
+    "cmp_linux_i2c_master",
     "cmp_linux_spi_master",
     "logging",
 ] }
