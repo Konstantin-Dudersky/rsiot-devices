@@ -50,6 +50,7 @@ where
                 },
             }],
             fn_msgs_to_buffer: |_msg, _buffer| (),
+            buffer_to_request_period: Duration::from_millis(100),
             fn_buffer_to_request: |_buffer: &Buffer| Ok(vec![]),
             fn_response_to_buffer: |response: FieldbusResponse, buffer: &mut Buffer| {
                 trace!("Response: {:?}", response);
@@ -60,7 +61,7 @@ where
                     Ok(payload) => payload,
                     Err(err) => {
                         warn!("Error reading AHT10: {}", err);
-                        return Ok(());
+                        return Ok(false);
                     }
                 };
 
@@ -76,7 +77,7 @@ where
                     }
                 }
 
-                Ok(())
+                Ok(true)
             },
             fn_buffer_to_msgs: self.fn_output,
             buffer_default: Buffer {

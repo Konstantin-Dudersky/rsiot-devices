@@ -1,3 +1,4 @@
+pub mod ads8688;
 pub mod xpt2046;
 
 use async_trait::async_trait;

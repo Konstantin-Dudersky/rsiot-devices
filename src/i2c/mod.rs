@@ -1,4 +1,5 @@
 pub mod aht10;
+pub mod mpu6050;
 
 use async_trait::async_trait;
 use bitvec::{field::BitField, order::Msb0, view::BitView};

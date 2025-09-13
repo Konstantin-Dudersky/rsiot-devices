@@ -1,10 +1,17 @@
-use strum::FromRepr;
-use tracing::trace;
+use std::time::Duration;
 
-use super::{
-    async_trait, broadcast, mpsc, BufferBound, ConfigPeriodicRequest, DeviceBase, DeviceTrait,
-    Duration, FieldbusRequest, FieldbusResponse, Message, MsgDataBound, Operation, Result,
+use async_trait::async_trait;
+use rsiot::{
+    components_config::{
+        master_device::{ConfigPeriodicRequest, DeviceBase, DeviceTrait, Result},
+        spi_master::{FieldbusRequest, FieldbusResponse, Operation},
+    },
+    message::{Message, MsgDataBound},
 };
+use tokio::sync::{broadcast, mpsc};
+use tracing::{info, trace};
+
+use super::{request_kind::RequestKind, Buffer};
 
 /// Тестовое устройство
 #[derive(Clone, Debug)]
@@ -28,15 +35,23 @@ where
         ch_tx_device_to_msgbus: mpsc::Sender<Message<TMsg>>,
     ) -> Result<()> {
         let device = DeviceBase {
-            fn_init_requests: |_| vec![],
+            fn_init_requests: |_| {
+                vec![FieldbusRequest::new(
+                    RequestKind::SetCommandAutoRst,
+                    vec![
+                        Operation::Write(vec![0x85, 0x00]),
+                        Operation::Write(vec![0xA0, 0x00]),
+                    ],
+                )]
+            },
             periodic_requests: vec![ConfigPeriodicRequest {
                 period: self.request_period,
                 fn_requests: |_buffer| {
                     Ok(vec![FieldbusRequest::new(
-                        RequestKind::XYPosition,
+                        RequestKind::ReadAutoSeq,
                         vec![
-                            Operation::WriteRead(vec![0b1101_1000], 1),
-                            Operation::WriteRead(vec![0b1001_1000], 1),
+                            Operation::WriteRead(vec![0x00, 0x00, 0x00], 3),
+                            // Operation::Read { read_size: 1 },
                         ],
                     )])
                 },
@@ -45,24 +60,24 @@ where
             buffer_to_request_period: Duration::from_millis(100),
             fn_buffer_to_request: |_buffer: &Buffer| Ok(vec![]),
             fn_response_to_buffer: |response: FieldbusResponse, buffer: &mut Buffer| {
-                trace!("Response: {:?}", response);
+                info!("Response: {:?}", response);
 
                 let request_kind: RequestKind = response.request_kind.into();
 
-                match request_kind {
-                    RequestKind::XYPosition => {
-                        let response_x = response.payload[0][0];
-                        let response_y = response.payload[1][0];
+                // match request_kind {
+                //     RequestKind::XYPosition => {
+                //         let response_x = response.payload[0][0];
+                //         let response_y = response.payload[1][0];
 
-                        if response_x == 0 {
-                            buffer.x = 0;
-                            buffer.y = 0;
-                        } else {
-                            buffer.x = response_x as u32;
-                            buffer.y = response_y as u32;
-                        }
-                    }
-                }
+                //         if response_x == 0 {
+                //             buffer.x = 0;
+                //             buffer.y = 0;
+                //         } else {
+                //             buffer.x = response_x as u32;
+                //             buffer.y = response_y as u32;
+                //         }
+                //     }
+                // }
 
                 Ok(false)
             },
@@ -80,28 +95,3 @@ where
         Ok(())
     }
 }
-
-/// Виды запросов
-#[derive(FromRepr)]
-pub enum RequestKind {
-    XYPosition,
-}
-impl From<RequestKind> for u8 {
-    fn from(value: RequestKind) -> Self {
-        value as u8
-    }
-}
-impl From<u8> for RequestKind {
-    fn from(value: u8) -> Self {
-        RequestKind::from_repr(value as usize).unwrap()
-    }
-}
-
-/// Буфер данных
-#[derive(Clone, Debug, Default, PartialEq)]
-pub struct Buffer {
-    pub x: u32,
-    pub y: u32,
-}
-
-impl BufferBound for Buffer {}

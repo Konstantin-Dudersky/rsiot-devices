@@ -15,7 +15,8 @@ tokio = "*"
 tokio = { version = "*", features = ["rt-multi-thread"] }
 serde = { version = "*", features = ["derive"] }
 rsiot = { version = "*", path = "../rsiot", features = [
+    "log_console",
     "cmp_linux_i2c_master",
     "cmp_linux_spi_master",
-    "logging",
+    "cmp_timescaledb",
 ] }

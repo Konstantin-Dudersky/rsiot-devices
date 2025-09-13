@@ -1,0 +1,6 @@
+[build]
+rustflags = [
+    # для tokio-console
+    "--cfg",
+    "tokio_unstable",
+]

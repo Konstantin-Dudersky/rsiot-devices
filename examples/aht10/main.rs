@@ -1,6 +1,6 @@
 //! cargo build --example aht10 --target="armv7-unknown-linux-gnueabihf" --release; scp target/armv7-unknown-linux-gnueabihf/release/examples/aht10 root@target:/root
 
-use rsiot::logging::configure_logging;
+use rsiot::logging::{LogConfig, LogConfigFilter};
 use rsiot_devices::i2c::aht10;
 use tracing::info;
 
@@ -8,9 +8,11 @@ mod message;
 
 #[tokio::main]
 async fn main() {
-    configure_logging("info,rsiot::components::cmp_linux_i2c_master=trace", None)
-        .await
-        .unwrap();
+    LogConfig {
+        filter: LogConfigFilter::String("info,rsiot::components::cmp_linux_i2c_master=trace"),
+    }
+    .run()
+    .unwrap();
 
     use std::time::Duration;
 
@@ -36,6 +38,7 @@ async fn main() {
         buffer_size: 100,
         fn_auth: |msg, _| Some(msg),
         delay_publish: Duration::from_millis(100),
+        fn_tokio_metrics: |_| None,
     };
 
     ComponentExecutor::new(config_executor)
