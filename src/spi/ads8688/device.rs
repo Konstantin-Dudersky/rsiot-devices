@@ -9,7 +9,7 @@ use rsiot::{
     message::{Message, MsgDataBound},
 };
 use tokio::sync::{broadcast, mpsc};
-use tracing::{info, trace};
+use tracing::info;
 
 use super::{request_kind::RequestKind, Buffer};
 
@@ -59,10 +59,10 @@ where
             fn_msgs_to_buffer: |_msg, _buffer| (),
             buffer_to_request_period: Duration::from_millis(100),
             fn_buffer_to_request: |_buffer: &Buffer| Ok(vec![]),
-            fn_response_to_buffer: |response: FieldbusResponse, buffer: &mut Buffer| {
+            fn_response_to_buffer: |response: FieldbusResponse, _buffer: &mut Buffer| {
                 info!("Response: {:?}", response);
 
-                let request_kind: RequestKind = response.request_kind.into();
+                let _request_kind: RequestKind = response.request_kind.try_into()?;
 
                 // match request_kind {
                 //     RequestKind::XYPosition => {
@@ -86,6 +86,7 @@ where
         };
         device
             .spawn(
+                "ADS8688",
                 ch_rx_msgbus_to_device,
                 ch_tx_device_to_fieldbus,
                 ch_rx_fieldbus_to_device,

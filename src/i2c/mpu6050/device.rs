@@ -187,7 +187,7 @@ where
             fn_response_to_buffer: |response: FieldbusResponse, buffer: &mut Buffer| {
                 trace!("Response: {:?}", response);
 
-                let request_kind: RequestKind = response.request_kind.into();
+                let request_kind: RequestKind = response.request_kind.try_into()?;
 
                 let payload = match response.payload {
                     Ok(payload) => payload,
@@ -329,6 +329,7 @@ Gyro_Z: {offset_gyro_z}
         };
         device
             .spawn(
+                "MPU6050",
                 ch_rx_msgbus_to_device,
                 ch_tx_device_to_fieldbus,
                 ch_rx_fieldbus_to_device,

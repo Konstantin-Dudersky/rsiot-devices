@@ -10,6 +10,7 @@ rsiot = { version = "*", path = "../rsiot", features = ["executor"] }
 strum = { version = "*", features = ["derive"] }
 tracing = "*"
 tokio = "*"
+anyhow = "*"
 
 [dev-dependencies]
 tokio = { version = "*", features = ["rt-multi-thread"] }

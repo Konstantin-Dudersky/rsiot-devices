@@ -1,9 +1,10 @@
+use rsiot::components_config::master_device::Error;
 use strum::FromRepr;
 use tracing::trace;
 
 use super::{
     async_trait, broadcast, mpsc, BufferBound, ConfigPeriodicRequest, DeviceBase, DeviceTrait,
-    Duration, FieldbusRequest, FieldbusResponse, Message, MsgDataBound, Operation, Result,
+    Duration, FieldbusRequest, FieldbusResponse, Message, MsgDataBound, Operation,
 };
 
 /// Тестовое устройство
@@ -26,7 +27,7 @@ where
         ch_tx_device_to_fieldbus: mpsc::Sender<FieldbusRequest>,
         ch_rx_fieldbus_to_device: mpsc::Receiver<FieldbusResponse>,
         ch_tx_device_to_msgbus: mpsc::Sender<Message<TMsg>>,
-    ) -> Result<()> {
+    ) -> Result<(), Error> {
         let device = DeviceBase {
             fn_init_requests: |_| vec![],
             periodic_requests: vec![ConfigPeriodicRequest {
@@ -47,7 +48,7 @@ where
             fn_response_to_buffer: |response: FieldbusResponse, buffer: &mut Buffer| {
                 trace!("Response: {:?}", response);
 
-                let request_kind: RequestKind = response.request_kind.into();
+                let request_kind: RequestKind = response.request_kind.try_into()?;
 
                 match request_kind {
                     RequestKind::XYPosition => {
@@ -71,6 +72,7 @@ where
         };
         device
             .spawn(
+                "XPT2046",
                 ch_rx_msgbus_to_device,
                 ch_tx_device_to_fieldbus,
                 ch_rx_fieldbus_to_device,
@@ -91,9 +93,12 @@ impl From<RequestKind> for u8 {
         value as u8
     }
 }
-impl From<u8> for RequestKind {
-    fn from(value: u8) -> Self {
-        RequestKind::from_repr(value as usize).unwrap()
+
+impl TryFrom<u8> for RequestKind {
+    type Error = Error;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        RequestKind::from_repr(value as usize).ok_or(Error::RequestKindUnknown(value))
     }
 }
 

@@ -1,3 +1,5 @@
+use rsiot::components_config::master_device::Error;
+
 use super::FromRepr;
 
 /// Виды запросов
@@ -5,13 +7,17 @@ use super::FromRepr;
 pub enum RequestKind {
     Values,
 }
+
 impl From<RequestKind> for u8 {
     fn from(value: RequestKind) -> Self {
         value as u8
     }
 }
-impl From<u8> for RequestKind {
-    fn from(value: u8) -> Self {
-        RequestKind::from_repr(value as usize).unwrap()
+
+impl TryFrom<u8> for RequestKind {
+    type Error = Error;
+
+    fn try_from(value: u8) -> Result<Self, Self::Error> {
+        RequestKind::from_repr(value as usize).ok_or(Error::RequestKindUnknown(value))
     }
 }
