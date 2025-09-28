@@ -7,7 +7,7 @@ pub use device::Device;
 pub use request_kind::RequestKind;
 
 use super::{
-    async_trait, broadcast, mpsc, BitField, BitView, BufferBound, ConfigPeriodicRequest,
-    DeviceBase, DeviceTrait, Duration, FieldbusRequest, FieldbusResponse, FromRepr, Message, Msb0,
+    async_trait, mpsc, BitField, BitView, BufferBound, ConfigPeriodicRequest, DeviceBase,
+    DeviceTrait, Duration, FieldbusRequest, FieldbusResponse, FromRepr, Message, Msb0,
     MsgDataBound, Operation, Result,
 };

@@ -6,9 +6,10 @@ use rsiot::{
         master_device::{ConfigPeriodicRequest, DeviceBase, DeviceTrait, Result},
         spi_master::{FieldbusRequest, FieldbusResponse, Operation},
     },
+    executor::MsgBusInput,
     message::{Message, MsgDataBound},
 };
-use tokio::sync::{broadcast, mpsc};
+use tokio::sync::mpsc;
 use tracing::info;
 
 use super::{request_kind::RequestKind, Buffer};
@@ -29,7 +30,7 @@ where
 {
     async fn spawn(
         self: Box<Self>,
-        ch_rx_msgbus_to_device: broadcast::Receiver<Message<TMsg>>,
+        ch_rx_msgbus_to_device: MsgBusInput<TMsg>,
         ch_tx_device_to_fieldbus: mpsc::Sender<FieldbusRequest>,
         ch_rx_fieldbus_to_device: mpsc::Receiver<FieldbusResponse>,
         ch_tx_device_to_msgbus: mpsc::Sender<Message<TMsg>>,
