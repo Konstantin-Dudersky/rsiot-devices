@@ -9,7 +9,11 @@ pub fn cmp() -> Component<Config<Msg>, Msg> {
     let config = Config::<Msg> {
         dev_i2c: "/dev/i2c-0".into(),
         devices: vec![Box::new(mpu6050::Device {
-            address: 0x68,
+            address: I2cAddress::Mux {
+                mux_address: 0x71,
+                channel: 0b0100_0000,
+                address: 0x68,
+            },
             request_period: Duration::from_millis(10),
             fn_output: |buffer| {
                 vec![Msg::MI2c(MI2c::Measurement {

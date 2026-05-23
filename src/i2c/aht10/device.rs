@@ -1,4 +1,7 @@
-use rsiot::executor::MsgBusInput;
+use rsiot::{
+    components_config::{i2c_master::I2cAddress, master_device::ResponseResult},
+    executor::MsgBusInput,
+};
 use tracing::{trace, warn};
 
 use super::{
@@ -10,7 +13,7 @@ use super::{
 /// Датчик температуры и влажности AHT10
 #[derive(Clone, Debug)]
 pub struct Device<TMsg> {
-    pub address: u8,
+    pub address: I2cAddress,
 
     pub request_period: Duration,
 
@@ -62,7 +65,7 @@ where
                     Ok(payload) => payload,
                     Err(err) => {
                         warn!("Error reading AHT10: {}", err);
-                        return Ok(false);
+                        return ResponseResult::error(err);
                     }
                 };
 
@@ -78,9 +81,10 @@ where
                     }
                 }
 
-                Ok(true)
+                ResponseResult::ok()
             },
             fn_buffer_to_msgs: self.fn_output,
+            device_state_output: None,
             buffer_default: Buffer {
                 address: self.address,
                 ..Default::default()

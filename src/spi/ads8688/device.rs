@@ -3,7 +3,7 @@ use std::time::Duration;
 use async_trait::async_trait;
 use rsiot::{
     components_config::{
-        master_device::{ConfigPeriodicRequest, DeviceBase, DeviceTrait, Result},
+        master_device::{ConfigPeriodicRequest, DeviceBase, DeviceTrait, ResponseResult, Result},
         spi_master::{FieldbusRequest, FieldbusResponse, Operation},
     },
     executor::MsgBusInput,
@@ -80,9 +80,10 @@ where
                 //     }
                 // }
 
-                Ok(false)
+                ResponseResult::ok()
             },
             fn_buffer_to_msgs: self.fn_output,
+            device_state_output: None,
             buffer_default: Buffer::default(),
         };
         device

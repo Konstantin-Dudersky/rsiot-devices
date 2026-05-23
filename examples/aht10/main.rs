@@ -1,6 +1,9 @@
 //! cargo build --example aht10 --target="armv7-unknown-linux-gnueabihf" --release; scp target/armv7-unknown-linux-gnueabihf/release/examples/aht10 root@target:/root
 
-use rsiot::logging::{LogConfig, LogConfigFilter};
+use rsiot::{
+    components_config::i2c_master::I2cAddress,
+    logging::{LogConfig, LogConfigFilter},
+};
 use rsiot_devices::i2c::aht10;
 use tracing::info;
 
@@ -24,7 +27,7 @@ async fn main() {
     let config = cmp_linux_i2c_master::Config::<message::Custom> {
         dev_i2c: "/dev/i2c-2".into(),
         devices: vec![Box::new(aht10::Device {
-            address: 0x38,
+            address: I2cAddress::Direct { address: 0x38 },
             request_period: Duration::from_millis(1000),
             fn_output: |buffer| {
                 info!("Humidity: {:.1}%", buffer.humidity);

@@ -1,3 +1,5 @@
+use rsiot::components_config::i2c_master::I2cAddress;
+use rsiot::components_config::master_device::ResponseResult;
 use rsiot::executor::MsgBusInput;
 use tracing::{debug, info, trace, warn};
 
@@ -14,7 +16,7 @@ pub struct Device<TMsg> {
     /// Адрес зависит от AD0:
     /// - GND - 0x68
     /// - VCC - 0x69
-    pub address: u8,
+    pub address: I2cAddress,
 
     pub request_period: Duration,
 
@@ -104,10 +106,13 @@ where
                             buffer.address,
                             RequestKind::ReadValues,
                             vec![
-                                Operation::Write {
+                                Operation::WriteRead {
                                     write_data: vec![0x3B],
-                                },
-                                Operation::Read { read_size: 14 },
+                                    read_size: 14,
+                                }, // Operation::Write {
+                                   //     write_data: vec![0x3B],
+                                   // },
+                                   // Operation::Read { read_size: 14 },
                             ],
                         );
                         requests.push(req);
@@ -194,12 +199,12 @@ where
                     Ok(payload) => payload,
                     Err(err) => {
                         warn!("Error reading MPU-6050: {}", err);
-                        return Ok(false);
+                        return ResponseResult::error(err);
                     }
                 };
 
-                let buffer_changed = match request_kind {
-                    RequestKind::Init => false,
+                match request_kind {
+                    RequestKind::Init => ResponseResult::ok_init_completed(),
 
                     RequestKind::ReadFullScaleConfig => {
                         debug!("Response: read full scale configuration from MPU-6050");
@@ -219,12 +224,12 @@ where
                             (true, true) => AfsSel::_16G,
                         };
 
-                        false
+                        ResponseResult::ok()
                     }
 
                     RequestKind::WriteFullScaleConfig => {
                         debug!("Response: write full scale configuration to MPU-6050");
-                        false
+                        ResponseResult::ok()
                     }
 
                     RequestKind::ReadValues => {
@@ -260,7 +265,11 @@ where
                         buffer.read_data.gyro_z_raw = gyro_z_raw;
                         buffer.read_data.gyro_z = gyro_from_raw(gyro_z_raw, gyro_full_range);
 
-                        calibration_process(buffer)
+                        let res = calibration_process(buffer);
+                        match res {
+                            true => ResponseResult::ok_need_request(),
+                            false => ResponseResult::ok(),
+                        }
                     }
 
                     RequestKind::ReadCalibrationOffsets => {
@@ -295,18 +304,17 @@ Gyro_Y: {offset_gyro_y}
 Gyro_Z: {offset_gyro_z}
 "#
                         );
-                        false
+                        ResponseResult::ok()
                     }
 
                     RequestKind::WriteCalibrationOffsets => {
                         debug!("Response: write new calibration offsets");
-                        false
+                        ResponseResult::ok()
                     }
-                };
-
-                Ok(buffer_changed)
+                }
             },
             fn_buffer_to_msgs: self.fn_output,
+            device_state_output: None,
             buffer_default: Buffer {
                 address: self.address,
                 write_data: WriteData {

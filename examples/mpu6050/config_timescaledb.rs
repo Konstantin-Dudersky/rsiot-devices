@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use rsiot::{components::cmp_timescaledb::*, executor::Component};
+use rsiot::{components::cmp_tsdb_reader::*, executor::Component};
 
 use super::message::*;
 

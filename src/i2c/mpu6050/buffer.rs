@@ -1,9 +1,11 @@
+use rsiot::components_config::i2c_master::I2cAddress;
+
 use super::{AfsSel, BufferBound, FsSel};
 
 /// Буфер данных
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Buffer {
-    pub address: u8,
+    pub address: I2cAddress,
     pub write_data: WriteData,
     pub read_data: ReadData,
     pub calibration_process: CalibrationProcess,

@@ -1,4 +1,6 @@
+pub mod _template;
 pub mod aht10;
+pub mod as5600;
 pub mod mpu6050;
 
 use async_trait::async_trait;

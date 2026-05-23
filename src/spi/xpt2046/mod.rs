@@ -1,4 +1,7 @@
-use rsiot::{components_config::master_device::Error, executor::MsgBusInput};
+use rsiot::{
+    components_config::master_device::{Error, ResponseResult},
+    executor::MsgBusInput,
+};
 use strum::FromRepr;
 use tracing::trace;
 
@@ -65,9 +68,10 @@ where
                     }
                 }
 
-                Ok(false)
+                ResponseResult::ok()
             },
             fn_buffer_to_msgs: self.fn_output,
+            device_state_output: None,
             buffer_default: Buffer::default(),
         };
         device

@@ -1,13 +1,12 @@
-mod config_linux_i2c_master;
-// mod config_timescaledb;
-mod message;
-
 use std::time::Duration;
 
 use rsiot::{
     executor::{ComponentExecutor, ComponentExecutorConfig},
     logging::{LogConfig, LogConfigFilter},
 };
+
+mod config_linux_i2c_master;
+mod message;
 
 #[tokio::main]
 async fn main() {
@@ -27,7 +26,6 @@ async fn main() {
 
     ComponentExecutor::new(config_executor)
         .add_cmp(config_linux_i2c_master::cmp())
-        // .add_cmp(config_timescaledb::cmp())
         .wait_result()
         .await
         .unwrap();
