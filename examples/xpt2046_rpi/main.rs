@@ -3,6 +3,7 @@
 //! cross build --example xpt2046_rpi --target="aarch64-unknown-linux-gnu" --release; scp target/aarch64-unknown-linux-gnu/release/examples/xpt2046_rpi user@target:/home/user/
 
 use rsiot::components::cmp_linux_spi_master::LinuxDevice;
+use rsiot::components::shared_tasks::fieldbus_execution::FieldbusDiag;
 use rsiot::components::{cmp_linux_spi_master, cmp_logger};
 use rsiot::executor::{ComponentExecutor, ComponentExecutorConfig};
 use rsiot::logging::{LogConfig, LogConfigFilter};
@@ -33,9 +34,8 @@ async fn main() {
                     let s = format!("x: {}, y: {}", x, y);
                     Ok(Some(s))
                 }
+                _ => Ok(None),
             }
-
-            // Ok(Some(msg.serialize()?))
         },
     };
 
@@ -61,6 +61,8 @@ async fn main() {
                 vec![msg]
             },
         })],
+        fn_diag: |diag| Custom::Diag(diag.clone()),
+        fn_diag_period: Duration::from_millis(1_000),
     };
 
     // executor ------------------------------------------------------------------------------------
@@ -82,6 +84,7 @@ async fn main() {
 #[derive(Clone, Debug, Deserialize, MsgKey, PartialEq, Serialize)]
 enum Custom {
     TouchEvent { x: u32, y: u32 },
+    Diag(FieldbusDiag),
 }
 
 impl MsgDataBound for Custom {}

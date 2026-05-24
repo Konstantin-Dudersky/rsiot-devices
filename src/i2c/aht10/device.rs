@@ -1,5 +1,8 @@
 use rsiot::{
-    components_config::{i2c_master::I2cAddress, master_device::ResponseResult},
+    components_config::{
+        i2c_master::I2cAddress,
+        master_device::{FieldbusDiagMsg, ResponseResult},
+    },
     executor::MsgBusInput,
 };
 use tracing::{trace, warn};
@@ -32,6 +35,7 @@ where
         ch_tx_device_to_fieldbus: mpsc::Sender<FieldbusRequest>,
         ch_rx_fieldbus_to_device: mpsc::Receiver<FieldbusResponse>,
         ch_tx_device_to_msgbus: mpsc::Sender<Message<TMsg>>,
+        ch_tx_device_to_diag: mpsc::Sender<FieldbusDiagMsg>,
     ) -> Result<()> {
         let device = DeviceBase {
             fn_init_requests: |_| vec![],
@@ -84,7 +88,6 @@ where
                 ResponseResult::ok()
             },
             fn_buffer_to_msgs: self.fn_output,
-            device_state_output: None,
             buffer_default: Buffer {
                 address: self.address,
                 ..Default::default()
@@ -97,6 +100,7 @@ where
                 ch_tx_device_to_fieldbus,
                 ch_rx_fieldbus_to_device,
                 ch_tx_device_to_msgbus,
+                ch_tx_device_to_diag,
             )
             .await?;
         Ok(())

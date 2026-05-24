@@ -1,12 +1,10 @@
 use std::time::Duration;
 
-use rsiot::{
-    components::cmp_linux_i2c_master::*, components_config::master_device::ConfigDeviceStateOutput,
-};
+use rsiot::components::cmp_linux_i2c_master::*;
 use rsiot_devices::i2c::as5600;
 use tracing::info;
 
-use super::message::*;
+use super::msg::*;
 
 pub fn cmp() -> Cmp<Msg> {
     let config = Config::<Msg> {
@@ -22,11 +20,9 @@ pub fn cmp() -> Cmp<Msg> {
                 info!("Read data: {:?}", buffer.read_data);
                 vec![Msg::MsgI2c(MsgI2c::Meas(10))]
             },
-            device_state_output: ConfigDeviceStateOutput {
-                fn_device_state: |ds| Msg::MsgI2c(MsgI2c::DeviceState_(ds)),
-                period: Duration::from_millis(1_000),
-            },
         })],
+        fn_diag: |diag| Msg::MsgI2c(MsgI2c::Diag(diag.clone())),
+        fn_diag_period: Duration::from_millis(1_000),
     };
 
     Cmp::new(config)

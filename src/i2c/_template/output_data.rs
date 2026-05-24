@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
 
+/// Выходные данные
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct OutputData {}
 

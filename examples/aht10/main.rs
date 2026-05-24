@@ -7,7 +7,7 @@ use rsiot::{
 use rsiot_devices::i2c::aht10;
 use tracing::info;
 
-mod message;
+mod msg;
 
 #[tokio::main]
 async fn main() {
@@ -24,7 +24,7 @@ async fn main() {
         executor::{ComponentExecutor, ComponentExecutorConfig},
     };
 
-    let config = cmp_linux_i2c_master::Config::<message::Custom> {
+    let config = cmp_linux_i2c_master::Config::<msg::Custom> {
         dev_i2c: "/dev/i2c-2".into(),
         devices: vec![Box::new(aht10::Device {
             address: I2cAddress::Direct { address: 0x38 },
@@ -35,6 +35,8 @@ async fn main() {
                 vec![]
             },
         })],
+        fn_diag: |diag| msg::Custom::Diag(diag.clone()),
+        fn_diag_period: Duration::from_millis(1_000),
     };
 
     let config_executor = ComponentExecutorConfig {

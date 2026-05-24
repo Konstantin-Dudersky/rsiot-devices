@@ -5,8 +5,7 @@ use rsiot::{
     components_config::{
         i2c_master::{FieldbusRequest, FieldbusResponse, I2cAddress, Operation},
         master_device::{
-            ConfigDeviceStateOutput, ConfigPeriodicRequest, DeviceBase, DeviceTrait,
-            ResponseResult, Result,
+            ConfigPeriodicRequest, DeviceBase, DeviceTrait, FieldbusDiagMsg, ResponseResult, Result,
         },
     },
     executor::MsgBusInput,
@@ -31,12 +30,14 @@ where
     /// - VCC - 0x69
     pub address: I2cAddress,
 
+    /// Период чтения данных
     pub request_period: Duration,
 
     /// Преобразование данных из буфера в исходящие сообщения
-    pub fn_output: fn(&mut Buffer) -> Vec<TMsg>,
+    pub fn_input: fn(&TMsg, &mut Buffer) -> (),
 
-    pub device_state_output: ConfigDeviceStateOutput<TMsg>,
+    /// Преобразование данных из буфера в исходящие сообщения
+    pub fn_output: fn(&mut Buffer) -> Vec<TMsg>,
 }
 
 #[async_trait]
@@ -50,6 +51,7 @@ where
         ch_tx_device_to_fieldbus: mpsc::Sender<FieldbusRequest>,
         ch_rx_fieldbus_to_device: mpsc::Receiver<FieldbusResponse>,
         ch_tx_device_to_msgbus: mpsc::Sender<Message<TMsg>>,
+        ch_tx_device_to_diag: mpsc::Sender<FieldbusDiagMsg>,
     ) -> Result<()> {
         let periodic_requests = vec![ConfigPeriodicRequest {
             period: self.request_period,
@@ -81,21 +83,21 @@ where
         let device = DeviceBase {
             fn_init_requests,
             periodic_requests,
-            fn_msgs_to_buffer: |_msg, _buffer| (),
+            fn_msgs_to_buffer: self.fn_input,
             buffer_to_request_period: Duration::from_millis(1000),
             fn_buffer_to_request,
             fn_response_to_buffer,
             fn_buffer_to_msgs: self.fn_output,
-            device_state_output: Some(self.device_state_output),
             buffer_default,
         };
         device
             .spawn(
-                "MPU6050",
+                super::super::device_id(super::DEVICE_NAME, self.address),
                 ch_rx_msgbus_to_device,
                 ch_tx_device_to_fieldbus,
                 ch_rx_fieldbus_to_device,
                 ch_tx_device_to_msgbus,
+                ch_tx_device_to_diag,
             )
             .await?;
         Ok(())

@@ -1,6 +1,6 @@
 use rsiot::components_config::{i2c_master::I2cAddress, master_device::BufferBound};
 
-use super::OutputData;
+use super::{Ds3231Datetime, OutputData};
 
 /// Буфер данных
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -20,7 +20,10 @@ impl BufferBound for Buffer {}
 impl Buffer {
     /// Создать выходные данные
     pub fn output_data(&self) -> OutputData {
-        OutputData {}
+        OutputData {
+            datetime: self.read_data.datetime.clone(),
+            temperature: self.read_data.temperature,
+        }
     }
 }
 
@@ -30,7 +33,13 @@ pub struct Config {
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct WriteData {}
+pub struct WriteData {
+    pub need_write: bool,
+    pub datetime: Ds3231Datetime,
+}
 
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct ReadData {}
+pub struct ReadData {
+    pub datetime: Ds3231Datetime,
+    pub temperature: f32,
+}

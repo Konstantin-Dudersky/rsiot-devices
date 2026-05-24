@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 use rsiot::{
-    components_config::master_device::DeviceState,
+    components::shared_tasks::fieldbus_execution::FieldbusDiag,
     message::{MsgDataBound, MsgKey},
 };
 
@@ -15,5 +15,5 @@ impl MsgDataBound for Msg {}
 #[derive(Clone, Debug, Deserialize, MsgKey, PartialEq, Serialize)]
 pub enum MsgI2c {
     Meas(u32),
-    DeviceState_(DeviceState),
+    Diag(FieldbusDiag),
 }

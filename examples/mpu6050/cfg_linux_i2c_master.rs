@@ -3,7 +3,7 @@ use std::time::Duration;
 use rsiot::{components::cmp_linux_i2c_master::*, executor::Component};
 use rsiot_devices::i2c::mpu6050;
 
-use super::message::*;
+use super::msg::*;
 
 pub fn cmp() -> Component<Config<Msg>, Msg> {
     let config = Config::<Msg> {
@@ -36,6 +36,8 @@ pub fn cmp() -> Component<Config<Msg>, Msg> {
             default_calibration_offset_gyro_z: 40,
             default_calibration_start: false,
         })],
+        fn_diag: |diag| Msg::MI2c(MI2c::Diag(diag.clone())),
+        fn_diag_period: Duration::from_millis(1_000),
     };
 
     Cmp::new(config)

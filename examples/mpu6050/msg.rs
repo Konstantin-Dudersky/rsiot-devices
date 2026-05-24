@@ -1,6 +1,9 @@
 use serde::{Deserialize, Serialize};
 
-use rsiot::message::{MsgDataBound, MsgKey};
+use rsiot::{
+    components::shared_tasks::fieldbus_execution::FieldbusDiag,
+    message::{MsgDataBound, MsgKey},
+};
 
 #[derive(Clone, Debug, Deserialize, MsgKey, PartialEq, Serialize)]
 pub enum Msg {
@@ -20,4 +23,5 @@ pub enum MI2c {
         gyro_y: f64,
         gyro_z: f64,
     },
+    Diag(FieldbusDiag),
 }

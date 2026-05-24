@@ -5,7 +5,9 @@ use rsiot::{
     logging::{LogConfig, LogConfigFilter},
 };
 
+mod cfg_inject_single;
 mod cfg_linux_i2c_master;
+mod cfg_logger;
 mod msg;
 
 #[tokio::main]
@@ -26,6 +28,8 @@ async fn main() {
 
     ComponentExecutor::new(config_executor)
         .add_cmp(cfg_linux_i2c_master::cmp())
+        .add_cmp(cfg_logger::cmp())
+        .add_cmp(cfg_inject_single::cmp())
         .wait_result()
         .await
         .unwrap();

@@ -4,22 +4,29 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-async-trait = "*"
+async-trait = "0.1.89"
 bitvec = "1.0.1"
 rsiot = { version = "*", path = "/mnt/data/projects/rsiot/", features = [
     "executor",
 ] }
-serde = { version = "*", features = ["derive"] }
-strum = { version = "*", features = ["derive"] }
-tracing = "*"
-tokio = "*"
-anyhow = "*"
+serde = { version = "1.0.228", features = ["derive"] }
+strum = { version = "0.28.0", features = ["derive"] }
+tracing = "0.1.44"
+tokio = "1.52.3"
+anyhow = "1.0.102"
+time = { version = "0.3.47", optional = true }
 
 [dev-dependencies]
-tokio = { version = "*", features = ["rt-multi-thread"] }
+tokio = { version = "1.52.3", features = ["rt-multi-thread"] }
 rsiot = { version = "*", path = "/mnt/data/projects/rsiot/", features = [
     "log_console",
     "cmp_linux_i2c_master",
     "cmp_linux_spi_master",
     "cmp_tsdb",
 ] }
+time = "0.3.47"
+
+[features]
+default = []
+
+time = ["dep:time"]

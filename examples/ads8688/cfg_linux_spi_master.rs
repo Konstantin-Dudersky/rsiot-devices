@@ -4,7 +4,7 @@ use rsiot::{components::cmp_linux_spi_master::*, executor::Component};
 
 use rsiot_devices::spi::ads8688;
 
-use crate::messages::*;
+use crate::msg::*;
 
 pub fn cmp() -> Component<Config<Msg>, Msg> {
     let config = Config {
@@ -27,6 +27,8 @@ pub fn cmp() -> Component<Config<Msg>, Msg> {
                 vec![]
             },
         })],
+        fn_diag: |diag| Msg::Diag(diag.clone()),
+        fn_diag_period: Duration::from_millis(1_000),
     };
 
     Cmp::new(config)

@@ -1,5 +1,5 @@
 use rsiot::components_config::i2c_master::I2cAddress;
-use rsiot::components_config::master_device::ResponseResult;
+use rsiot::components_config::master_device::{FieldbusDiagMsg, ResponseResult};
 use rsiot::executor::MsgBusInput;
 use tracing::{debug, info, trace, warn};
 
@@ -46,6 +46,7 @@ where
         ch_tx_device_to_fieldbus: mpsc::Sender<FieldbusRequest>,
         ch_rx_fieldbus_to_device: mpsc::Receiver<FieldbusResponse>,
         ch_tx_device_to_msgbus: mpsc::Sender<Message<TMsg>>,
+        ch_tx_device_to_diag: mpsc::Sender<FieldbusDiagMsg>,
     ) -> Result<()> {
         let device = DeviceBase {
             fn_init_requests: |buffer: &Buffer| {
@@ -314,7 +315,6 @@ Gyro_Z: {offset_gyro_z}
                 }
             },
             fn_buffer_to_msgs: self.fn_output,
-            device_state_output: None,
             buffer_default: Buffer {
                 address: self.address,
                 write_data: WriteData {
@@ -343,6 +343,7 @@ Gyro_Z: {offset_gyro_z}
                 ch_tx_device_to_fieldbus,
                 ch_rx_fieldbus_to_device,
                 ch_tx_device_to_msgbus,
+                ch_tx_device_to_diag,
             )
             .await?;
         Ok(())

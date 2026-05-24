@@ -1,6 +1,6 @@
-mod config_linux_i2c_master;
+mod cfg_linux_i2c_master;
 // mod config_timescaledb;
-mod message;
+mod msg;
 
 use std::time::Duration;
 
@@ -26,7 +26,7 @@ async fn main() {
     };
 
     ComponentExecutor::new(config_executor)
-        .add_cmp(config_linux_i2c_master::cmp())
+        .add_cmp(cfg_linux_i2c_master::cmp())
         // .add_cmp(config_timescaledb::cmp())
         .wait_result()
         .await

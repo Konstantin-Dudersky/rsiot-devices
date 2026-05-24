@@ -2,8 +2,8 @@
 //!
 //! cross build --example xpt2046_rpi --target="aarch64-unknown-linux-gnu" --release; scp target/aarch64-unknown-linux-gnu/release/examples/xpt2046_rpi user@target:/home/user/
 
-mod config_linux_spi_master;
-mod messages;
+mod cfg_linux_spi_master;
+mod msg;
 
 use rsiot::components::cmp_logger;
 use rsiot::executor::{ComponentExecutor, ComponentExecutorConfig};
@@ -12,7 +12,7 @@ use rsiot::message::Message;
 use std::time::Duration;
 use tracing::Level;
 
-use messages::*;
+use msg::*;
 
 #[tokio::main]
 async fn main() {
@@ -23,7 +23,7 @@ async fn main() {
     .unwrap();
 
     // cmp_logger ----------------------------------------------------------------------------------
-    let config_logger = cmp_logger::Config {
+    let cfg_logger = cmp_logger::Config {
         level: Level::INFO,
         fn_input: |msg: Message<Msg>| {
             let Some(msg) = msg.get_custom_data() else {
@@ -34,6 +34,8 @@ async fn main() {
                     let s = format!("x: {}, y: {}", x, y);
                     Ok(Some(s))
                 }
+
+                _ => Ok(None),
             }
 
             // Ok(Some(msg.serialize()?))
@@ -49,8 +51,8 @@ async fn main() {
     };
 
     ComponentExecutor::<Msg>::new(executor_config)
-        .add_cmp(cmp_logger::Cmp::new(config_logger))
-        .add_cmp(config_linux_spi_master::cmp())
+        .add_cmp(cmp_logger::Cmp::new(cfg_logger))
+        .add_cmp(cfg_linux_spi_master::cmp())
         .wait_result()
         .await
         .unwrap();
