@@ -1,0 +1,61 @@
+services:
+  mpu6050_svc_tsdb:
+    command: postgres
+      -c config_file=/etc/postgresql/postgresql.conf
+      -c hba_file=/etc/postgresql/pg_hba.conf
+    container_name: mpu6050_svc_tsdb
+    healthcheck:
+      test: pg_isready -d prj_rsiot_devices__hst_local__svc_mpu6050
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s
+    hostname: mpu6050_svc_tsdb
+    image: timescale/timescaledb:2.23.0-pg18 # https://hub.docker.com/r/timescale/timescaledb/tags
+    networks:
+      - network_internal
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    user: postgres
+    volumes:
+      - ./svc_tsdb/postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./svc_tsdb/pg_hba.conf:/etc/postgresql/pg_hba.conf
+      - ./svc_tsdb/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+      - mpu6050_timescaledb_volume:/var/lib/postgresql
+
+  mpu6050_svc_grafana:
+    container_name: mpu6050_svc_grafana
+    hostname: mpu6050_svc_grafana
+    image: grafana/grafana:13.1.0-25893932881 # https://hub.docker.com/r/grafana/grafana/tags
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_DASHBOARDS_MIN_REFRESH_INTERVAL=1s
+        # настройки источника - TimescaleDB
+      - TIMESCALEDB_HOST=mpu6050_svc_tsdb
+      - TIMESCALEDB_PORT=5432
+      - TIMESCALEDB_DB_DATA=prj_rsiot_devices__hst_local__svc_mpu6050
+    networks:
+      - network_internal
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./svc_grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./svc_grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    user: "root:root"
+
+networks:
+  network_internal:
+
+volumes:
+  mpu6050_timescaledb_volume:
+    name: mpu6050_timescaledb_volume

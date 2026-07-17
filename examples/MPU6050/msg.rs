@@ -22,6 +22,9 @@ pub enum MI2c {
         gyro_x: f64,
         gyro_y: f64,
         gyro_z: f64,
+        yaw: f64,
+        pitch: f64,
+        roll: f64,
     },
     Diag(FieldbusDiag),
 }

@@ -1,29 +1,62 @@
 use rsiot::components_config::i2c_master::I2cAddress;
 
-use super::{AfsSel, BufferBound, FsSel};
+use super::{
+    outline_detection::OutlineDetectionData, AccelFullScale, BufferBound, GyroFullScale, OutputData,
+};
 
 /// Буфер данных
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct Buffer {
-    pub address: I2cAddress,
+    /// Конфигурация
+    pub config: Config,
+
+    /// Данные для записи
     pub write_data: WriteData,
+
+    /// Данные для чтения
     pub read_data: ReadData,
+
+    /// Данные для процесса калибровки
     pub calibration_process: CalibrationProcess,
+
+    pub outline_detection: OutlineDetectionData,
 }
 impl BufferBound for Buffer {}
+impl Buffer {
+    pub fn output_data(&self) -> OutputData {
+        OutputData {
+            accel_x: self.read_data.accel_x,
+            accel_y: self.read_data.accel_y,
+            accel_z: self.read_data.accel_z,
+            gyro_x: self.read_data.gyro_x,
+            gyro_y: self.read_data.gyro_y,
+            gyro_z: self.read_data.gyro_z,
+            pitch: self.read_data.pitch,
+            roll: self.read_data.roll,
+            yaw: self.read_data.yaw,
+            temperature: self.read_data.temperature,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Default, PartialEq)]
+pub struct Config {
+    pub address: I2cAddress,
+    pub dmp_enabled: bool,
+}
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct WriteData {
     pub calibration_offsets: CalibrationOffsets,
-    pub gyro_full_range: FsSel,
-    pub accel_full_range: AfsSel,
+    pub gyro_full_range: GyroFullScale,
+    pub accel_full_range: AccelFullScale,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
 pub struct ReadData {
     pub calibration_offsets: CalibrationOffsets,
-    pub gyro_full_range: FsSel,
-    pub accel_full_range: AfsSel,
+    pub gyro_full_range: GyroFullScale,
+    pub accel_full_range: AccelFullScale,
     pub accel_x_raw: i16,
     pub accel_x: f64,
     pub accel_y_raw: i16,
@@ -37,6 +70,10 @@ pub struct ReadData {
     pub gyro_z_raw: i16,
     pub gyro_z: f64,
     pub temperature: f64,
+    pub fifo_count: usize,
+    pub yaw: f64,
+    pub pitch: f64,
+    pub roll: f64,
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
@@ -83,8 +120,8 @@ pub struct CalibrationProcess {
     pub prev_offset_gyro_y: i64,
     pub prev_offset_gyro_z: i64,
 
-    pub gyro_full_range: FsSel,
-    pub accel_full_range: AfsSel,
+    pub gyro_full_range: GyroFullScale,
+    pub accel_full_range: AccelFullScale,
 }
 impl Default for CalibrationProcess {
     fn default() -> Self {

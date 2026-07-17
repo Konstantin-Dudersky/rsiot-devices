@@ -1,5 +1,5 @@
 ```sh
-cargo build --example mpu6050 --target="armv7-unknown-linux-gnueabihf" --release; scp target/armv7-unknown-linux-gnueabihf/release/examples/mpu6050 root@target:/root
+cargo build --example MPU6050 --target="armv7-unknown-linux-gnueabihf" --release; scp target/armv7-unknown-linux-gnueabihf/release/examples/MPU6050 root@target:/root
 ```
 
 # Полезные запросы

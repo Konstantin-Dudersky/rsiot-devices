@@ -10,6 +10,9 @@ pub enum RequestKind {
     ReadFullScaleConfig,
     WriteFullScaleConfig,
     ReadValues,
+    ReadFifoCount,
+    ReadDmpFifo,
+    ResetFifoBuffer,
 }
 
 impl From<RequestKind> for u8 {

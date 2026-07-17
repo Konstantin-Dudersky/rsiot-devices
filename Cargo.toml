@@ -4,17 +4,19 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.102"
 async-trait = "0.1.89"
 bitvec = "1.0.1"
+pretty_assertions = { version = "1.4.1" }
 rsiot = { version = "*", path = "/mnt/data/projects/rsiot/", features = [
     "executor",
 ] }
 serde = { version = "1.0.228", features = ["derive"] }
 strum = { version = "0.28.0", features = ["derive"] }
 tracing = "0.1.44"
-tokio = "1.52.3"
-anyhow = "1.0.102"
 time = { version = "0.3.47", optional = true }
+tokio = "1.52.3"
+
 
 [dev-dependencies]
 tokio = { version = "1.52.3", features = ["rt-multi-thread"] }

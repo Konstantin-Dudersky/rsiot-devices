@@ -3,10 +3,10 @@
 #![allow(non_snake_case)]
 
 pub mod DS3231;
+pub mod MPU6050;
 pub mod _template;
 pub mod aht10;
 pub mod as5600;
-pub mod mpu6050;
 
 use async_trait::async_trait;
 use bitvec::{field::BitField, order::Msb0, view::BitView};
